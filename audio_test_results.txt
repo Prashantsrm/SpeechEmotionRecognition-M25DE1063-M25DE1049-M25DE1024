@@ -1,0 +1,53 @@
+======================================================================
+  SPEECH EMOTION RECOGNITION - AUDIO SAMPLE TEST RESULTS
+  Team X | IIT Jodhpur
+  Date: April 18, 2026 17:04:21
+  Model: Local CNN Ensemble (RAVDESS-trained)
+  Model Path: models/ensemble_best.pth
+======================================================================
+
+----------------------------------------------------------------------
+  File       : alban_gogh-quot-panic-fear-quot-sound-effect-479998.mp3
+  Description: Panic/Fear Sound Effect
+
+  Predicted Emotion : CALM
+  Confidence        : 0.9997 (100.0%)
+
+  All Emotion Probabilities:
+  --------------------------------------------------
+  calm          0.9997  █████████████████████████████░ <-- PREDICTED
+  neutral       0.0003  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  happy         0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  sad           0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  angry         0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  fearful       0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  disgust       0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  surprised     0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+----------------------------------------------------------------------
+  File       : Piya Aaye Na(KoshalWorld.Com).mp3
+  Description: Hindi Song (Piya Aaye Na)
+
+  Predicted Emotion : CALM
+  Confidence        : 0.9998 (100.0%)
+
+  All Emotion Probabilities:
+  --------------------------------------------------
+  calm          0.9998  █████████████████████████████░ <-- PREDICTED
+  sad           0.0002  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  neutral       0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  happy         0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  angry         0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  fearful       0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  disgust       0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  surprised     0.0000  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+======================================================================
+  SUMMARY
+======================================================================
+  Panic/Fear Sound Effect                  -> CALM         (100.0%)
+  Hindi Song (Piya Aaye Na)                -> CALM         (100.0%)
+
+  Note: Model trained on RAVDESS dataset (speech only).
+  Music files may not predict accurately as model is trained on speech.
+======================================================================

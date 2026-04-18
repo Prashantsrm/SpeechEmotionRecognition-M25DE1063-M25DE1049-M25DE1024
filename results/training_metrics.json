@@ -1,0 +1,22 @@
+{
+  "training_completed": "2026-04-18T16:18:54.763577",
+  "training_time_seconds": 2078.96,
+  "training_time_formatted": "0h 34m 39s",
+  "epochs_completed": 53,
+  "final_train_loss": 0.25794794796328796,
+  "final_val_loss": 0.8843353475234946,
+  "final_val_accuracy": 0.7306122448979592,
+  "best_val_loss": 0.8397977313216851,
+  "best_val_accuracy": 0.7510204081632653,
+  "hyperparameters": {
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "train_split": 0.66,
+    "optimizer": "Adam",
+    "scheduler": "ReduceLROnPlateau",
+    "weight_decay": 0.0001,
+    "dropout": 0.5
+  },
+  "model_path": "models\\ensemble_best.pth",
+  "training_curves_path": "results/training_curves.png"
+}

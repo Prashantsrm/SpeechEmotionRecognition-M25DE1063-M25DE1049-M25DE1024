@@ -1,0 +1,41 @@
+{
+  "test_date": "2026-04-18T17:04:21.369724",
+  "model": "Local CNN Ensemble (RAVDESS-trained)",
+  "model_path": "models/ensemble_best.pth",
+  "results": [
+    {
+      "file": "alban_gogh-quot-panic-fear-quot-sound-effect-479998.mp3",
+      "description": "Panic/Fear Sound Effect",
+      "predicted_emotion": "calm",
+      "confidence": 0.9997,
+      "confidence_percent": "100.0%",
+      "all_probabilities": {
+        "neutral": 0.0003,
+        "calm": 0.9997,
+        "happy": 0.0,
+        "sad": 0.0,
+        "angry": 0.0,
+        "fearful": 0.0,
+        "disgust": 0.0,
+        "surprised": 0.0
+      }
+    },
+    {
+      "file": "Piya Aaye Na(KoshalWorld.Com).mp3",
+      "description": "Hindi Song (Piya Aaye Na)",
+      "predicted_emotion": "calm",
+      "confidence": 0.9998,
+      "confidence_percent": "100.0%",
+      "all_probabilities": {
+        "neutral": 0.0,
+        "calm": 0.9998,
+        "happy": 0.0,
+        "sad": 0.0002,
+        "angry": 0.0,
+        "fearful": 0.0,
+        "disgust": 0.0,
+        "surprised": 0.0
+      }
+    }
+  ]
+}

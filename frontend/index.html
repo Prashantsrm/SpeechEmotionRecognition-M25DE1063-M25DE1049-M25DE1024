@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speech Emotion Recognition – IIT Jodhpur Team X</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      color: #e0e0e0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    header {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header .logo { font-size: 28px; }
+    header h1 { font-size: 1.4rem; font-weight: 700; color: #fff; }
+    header p  { font-size: 0.8rem; color: #aaa; }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+    /* ── Cards ────────────────────────────────────────────────────── */
+    .card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #c9b8ff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Buttons ──────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary  { background: #7c3aed; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #6d28d9; transform: translateY(-1px); }
+    .btn-danger   { background: #dc2626; color: #fff; }
+    .btn-danger:hover:not(:disabled)  { background: #b91c1c; }
+    .btn-success  { background: #059669; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-outline  {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #e0e0e0;
+    }
+    .btn-outline:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
+
+    /* ── Recording ────────────────────────────────────────────────── */
+    .record-controls { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .timer { font-size: 2rem; font-weight: 700; color: #a78bfa; text-align: center; margin: 8px 0; }
+    .level-bar-wrap {
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      height: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .level-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #7c3aed, #ec4899);
+      border-radius: 8px;
+      transition: width 0.1s;
+      width: 0%;
+    }
+    #waveCanvas {
+      width: 100%;
+      height: 80px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      display: block;
+    }
+
+    /* ── Upload ───────────────────────────────────────────────────── */
+    .drop-zone {
+      border: 2px dashed rgba(124,58,237,0.5);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #7c3aed;
+      background: rgba(124,58,237,0.1);
+    }
+    .drop-zone .icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .drop-zone p { color: #aaa; font-size: 0.85rem; }
+    #fileInput { display: none; }
+    .file-info {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      color: #ccc;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    /* ── Progress ─────────────────────────────────────────────────── */
+    .progress-wrap {
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      height: 6px;
+      overflow: hidden;
+      margin: 8px 0;
+      display: none;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #7c3aed, #06b6d4);
+      border-radius: 8px;
+      animation: progress-anim 1.5s ease-in-out infinite;
+    }
+    @keyframes progress-anim {
+      0%   { width: 0%; }
+      50%  { width: 70%; }
+      100% { width: 100%; }
+    }
+
+    /* ── Result ───────────────────────────────────────────────────── */
+    .result-card {
+      grid-column: 1 / -1;
+    }
+    .emotion-hero {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.05);
+    }
+    .emotion-icon { font-size: 4rem; }
+    .emotion-name { font-size: 2rem; font-weight: 800; text-transform: capitalize; }
+    .emotion-conf { font-size: 1rem; color: #aaa; }
+
+    .prob-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .prob-item { }
+    .prob-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+      text-transform: capitalize;
+    }
+    .prob-bar-wrap {
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .prob-bar {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s ease;
+    }
+
+    /* ── History ──────────────────────────────────────────────────── */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .history-table th {
+      text-align: left;
+      padding: 8px 12px;
+      color: #a78bfa;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .history-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .history-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    /* ── Status ───────────────────────────────────────────────────── */
+    .status-bar {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 12px;
+    }
+    .status-bar.error { color: #f87171; }
+    .status-bar.success { color: #34d399; }
+
+    /* ── Placeholder ──────────────────────────────────────────────── */
+    .placeholder {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+    .placeholder .icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* ── Export ───────────────────────────────────────────────────── */
+    .export-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎙️</div>
+  <div>
+    <h1>Speech Emotion Recognition</h1>
+    <p>IIT Jodhpur · Team X · Asit Jain · Avinash Singh · Prashant Kumar Mishra</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── Microphone Card ─────────────────────────────────────────── -->
+  <div class="card">
+    <h2>🎤 Record Voice</h2>
+    <div class="record-controls">
+      <button class="btn btn-success" id="btnRecord" onclick="startRecording()">▶ Start Recording</button>
+      <button class="btn btn-danger"  id="btnStop"   onclick="stopRecording()" disabled>⏹ Stop</button>
+      <button class="btn btn-primary" id="btnAnalyzeRec" onclick="analyzeRecording()" disabled>🔍 Analyze</button>
+    </div>
+    <div class="timer" id="timer">00:00</div>
+    <div class="level-bar-wrap"><div class="level-bar" id="levelBar"></div></div>
+    <canvas id="waveCanvas"></canvas>
+    <div class="progress-wrap" id="recProgress"><div class="progress-bar"></div></div>
+    <div class="status-bar" id="recStatus">Click "Start Recording" and speak for 3–5 seconds.</div>
+  </div>
+
+  <!-- ── Upload Card ─────────────────────────────────────────────── -->
+  <div class="card">
+    <h2>📁 Upload Audio File</h2>
+    <div class="drop-zone" id="dropZone"
+         onclick="document.getElementById('fileInput').click()"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)">
+      <div class="icon">📂</div>
+      <p><strong>Drag &amp; drop</strong> or click to browse</p>
+      <p style="margin-top:6px">Supported: WAV · MP3 · OGG · FLAC</p>
+    </div>
+    <input type="file" id="fileInput" accept=".wav,.mp3,.ogg,.flac,.m4a"
+           onchange="onFileSelected(event)" />
+    <div class="file-info" id="fileInfo"></div>
+    <button class="btn btn-primary" id="btnAnalyzeFile" onclick="analyzeFile()" disabled>🔍 Analyze Emotion</button>
+    <div class="progress-wrap" id="fileProgress"><div class="progress-bar"></div></div>
+    <div class="status-bar" id="fileStatus">Select an audio file to analyze.</div>
+  </div>
+
+  <!-- ── Result Card ─────────────────────────────────────────────── -->
+  <div class="card result-card" id="resultCard" style="display:none">
+    <h2>🎯 Emotion Prediction</h2>
+    <div class="emotion-hero" id="emotionHero">
+      <div class="emotion-icon" id="emotionIcon"></div>
+      <div>
+        <div class="emotion-name" id="emotionName"></div>
+        <div class="emotion-conf" id="emotionConf"></div>
+      </div>
+    </div>
+    <h3 style="font-size:0.9rem;color:#a78bfa;margin-bottom:12px">Probability Distribution</h3>
+    <div class="prob-grid" id="probGrid"></div>
+    <div class="export-row">
+      <button class="btn btn-outline" onclick="exportJSON()">⬇ Export JSON</button>
+      <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- ── History Card ────────────────────────────────────────────── -->
+  <div class="card result-card" id="historyCard">
+    <h2>📋 Prediction History</h2>
+    <div id="historyContent">
+      <div class="placeholder">
+        <div class="icon">🕐</div>
+        <p>No predictions yet. Record or upload audio to get started.</p>
+      </div>
+    </div>
+    <div class="export-row">
+      <button class="btn btn-outline" onclick="clearHistory()">🗑 Clear History</button>
+      <button class="btn btn-outline" onclick="exportHistoryCSV()">⬇ Export History CSV</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const API_BASE = 'http://localhost:5000/api/v1';
+
+const EMOTION_ICONS = {
+  neutral:'😐', calm:'😌', happy:'😊', sad:'😢',
+  angry:'😠', fearful:'😨', disgust:'🤢', surprised:'😲'
+};
+const EMOTION_COLORS = {
+  neutral:'#808080', calm:'#87CEEB', happy:'#FFD700',
+  sad:'#4169E1', angry:'#FF4500', fearful:'#9932CC',
+  disgust:'#228B22', surprised:'#FF69B4'
+};
+
+// ── State ────────────────────────────────────────────────────────────────────
+let mediaRecorder = null;
+let audioChunks   = [];
+let audioBlob     = null;
+let selectedFile  = null;
+let lastResult    = null;
+let history       = [];
+let timerInterval = null;
+let timerSecs     = 0;
+let audioCtx      = null;
+let analyser      = null;
+let animFrame     = null;
+
+// ── Recording ────────────────────────────────────────────────────────────────
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    const src = audioCtx.createMediaStreamSource(stream);
+    src.connect(analyser);
+
+    // Pick a format the browser supports — prefer wav-compatible formats
+    const mimeType = MediaRecorder.isTypeSupported('audio/wav')
+      ? 'audio/wav'
+      : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
+        ? 'audio/ogg;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : '';
+
+    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+    audioChunks   = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      const type = mediaRecorder.mimeType || 'audio/webm';
+      audioBlob = new Blob(audioChunks, { type });
+      document.getElementById('btnAnalyzeRec').disabled = false;
+      setStatus('recStatus', '✅ Recording complete. Click "Analyze" to detect emotion.', 'success');
+    };
+    mediaRecorder.start();
+
+    // Timer
+    timerSecs = 0;
+    timerInterval = setInterval(() => {
+      timerSecs++;
+      const m = String(Math.floor(timerSecs/60)).padStart(2,'0');
+      const s = String(timerSecs%60).padStart(2,'0');
+      document.getElementById('timer').textContent = `${m}:${s}`;
+    }, 1000);
+
+    drawWaveform();
+
+    document.getElementById('btnRecord').disabled = true;
+    document.getElementById('btnStop').disabled   = false;
+    document.getElementById('btnAnalyzeRec').disabled = true;
+    setStatus('recStatus', '🔴 Recording… Speak clearly for 3–5 seconds.', '');
+  } catch(err) {
+    setStatus('recStatus', `❌ Microphone error: ${err.message}`, 'error');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  }
+  clearInterval(timerInterval);
+  cancelAnimationFrame(animFrame);
+  document.getElementById('btnRecord').disabled = false;
+  document.getElementById('btnStop').disabled   = true;
+  document.getElementById('levelBar').style.width = '0%';
+}
+
+function drawWaveform() {
+  const canvas = document.getElementById('waveCanvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  const bufLen = analyser.frequencyBinCount;
+  const data   = new Uint8Array(bufLen);
+
+  function draw() {
+    animFrame = requestAnimationFrame(draw);
+    analyser.getByteTimeDomainData(data);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth   = 2;
+    ctx.strokeStyle = '#7c3aed';
+    ctx.beginPath();
+
+    const sliceW = canvas.width / bufLen;
+    let x = 0;
+    for (let i = 0; i < bufLen; i++) {
+      const v = data[i] / 128.0;
+      const y = v * canvas.height / 2;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      x += sliceW;
+    }
+    ctx.lineTo(canvas.width, canvas.height / 2);
+    ctx.stroke();
+
+    // Level bar
+    analyser.getByteFrequencyData(data);
+    const avg = data.reduce((a,b) => a+b, 0) / data.length;
+    document.getElementById('levelBar').style.width = Math.min(avg * 1.5, 100) + '%';
+  }
+  draw();
+}
+
+async function analyzeRecording() {
+  if (!audioBlob) return;
+  // Determine file extension from blob type
+  const type = audioBlob.type || 'audio/webm';
+  let ext = 'webm';
+  if (type.includes('ogg'))  ext = 'ogg';
+  else if (type.includes('wav'))  ext = 'wav';
+  else if (type.includes('mp4'))  ext = 'mp4';
+  const file = new File([audioBlob], `recording.${ext}`, { type });
+  await sendToAPI(file, 'recStatus', 'recProgress');
+}
+
+// ── File Upload ──────────────────────────────────────────────────────────────
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag-over');
+}
+function onDragLeave(e) {
+  document.getElementById('dropZone').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) setFile(file);
+}
+function onFileSelected(e) {
+  const file = e.target.files[0];
+  if (file) setFile(file);
+}
+function setFile(file) {
+  selectedFile = file;
+  const info = document.getElementById('fileInfo');
+  info.style.display = 'block';
+  info.textContent = `📄 ${file.name}  (${(file.size/1024).toFixed(1)} KB)`;
+  document.getElementById('btnAnalyzeFile').disabled = false;
+  setStatus('fileStatus', `File selected: ${file.name}`, 'success');
+}
+async function analyzeFile() {
+  if (!selectedFile) return;
+  await sendToAPI(selectedFile, 'fileStatus', 'fileProgress');
+}
+
+// ── API Call ─────────────────────────────────────────────────────────────────
+async function sendToAPI(file, statusId, progressId) {
+  const formData = new FormData();
+  formData.append('audio', file);
+
+  document.getElementById(progressId).style.display = 'block';
+  setStatus(statusId, '⏳ Analyzing emotion…', '');
+
+  try {
+    const resp = await fetch(`${API_BASE}/predict`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await resp.json();
+
+    if (!resp.ok) throw new Error(data.error || 'API error');
+
+    lastResult = data;
+    showResult(data);
+    addHistory(data, file.name);
+    setStatus(statusId, `✅ Done in ${data.processing_time_ms}ms`, 'success');
+  } catch(err) {
+    setStatus(statusId, `❌ Error: ${err.message}`, 'error');
+  } finally {
+    document.getElementById(progressId).style.display = 'none';
+  }
+}
+
+// ── Display Result ───────────────────────────────────────────────────────────
+function showResult(data) {
+  const card = document.getElementById('resultCard');
+  card.style.display = 'block';
+
+  const color = EMOTION_COLORS[data.emotion] || '#888';
+  document.getElementById('emotionHero').style.borderLeft = `6px solid ${color}`;
+  document.getElementById('emotionIcon').textContent = EMOTION_ICONS[data.emotion] || '🎭';
+  document.getElementById('emotionName').textContent  = data.emotion;
+  document.getElementById('emotionName').style.color  = color;
+  document.getElementById('emotionConf').textContent  =
+    `Confidence: ${(data.confidence * 100).toFixed(1)}%  ·  ${data.processing_time_ms}ms`;
+
+  const grid = document.getElementById('probGrid');
+  grid.innerHTML = '';
+  const probs = data.probabilities;
+  Object.entries(probs)
+    .sort((a,b) => b[1] - a[1])
+    .forEach(([emotion, prob]) => {
+      const pct = (prob * 100).toFixed(1);
+      const c   = EMOTION_COLORS[emotion] || '#888';
+      grid.innerHTML += `
+        <div class="prob-item">
+          <div class="prob-label">
+            <span>${EMOTION_ICONS[emotion]} ${emotion}</span>
+            <span>${pct}%</span>
+          </div>
+          <div class="prob-bar-wrap">
+            <div class="prob-bar" style="width:${pct}%;background:${c}"></div>
+          </div>
+        </div>`;
+    });
+}
+
+// ── History ──────────────────────────────────────────────────────────────────
+function addHistory(data, filename) {
+  history.unshift({
+    time:       new Date().toLocaleTimeString(),
+    filename:   filename,
+    emotion:    data.emotion,
+    confidence: data.confidence,
+    probs:      data.probabilities,
+  });
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyContent');
+  if (history.length === 0) {
+    el.innerHTML = `<div class="placeholder"><div class="icon">🕐</div><p>No predictions yet.</p></div>`;
+    return;
+  }
+  let rows = history.map(h => {
+    const c = EMOTION_COLORS[h.emotion] || '#888';
+    return `<tr>
+      <td>${h.time}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${h.filename}</td>
+      <td><span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}44">
+        ${EMOTION_ICONS[h.emotion]} ${h.emotion}</span></td>
+      <td>${(h.confidence*100).toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `<table class="history-table">
+    <thead><tr><th>Time</th><th>File</th><th>Emotion</th><th>Confidence</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function clearHistory() {
+  history = [];
+  renderHistory();
+}
+
+// ── Export ───────────────────────────────────────────────────────────────────
+function exportJSON() {
+  if (!lastResult) return;
+  download('prediction.json', JSON.stringify(lastResult, null, 2), 'application/json');
+}
+function exportCSV() {
+  if (!lastResult) return;
+  const rows = [['emotion','confidence',...Object.keys(lastResult.probabilities)],
+                [lastResult.emotion, lastResult.confidence,
+                 ...Object.values(lastResult.probabilities)]];
+  download('prediction.csv', rows.map(r=>r.join(',')).join('\n'), 'text/csv');
+}
+function exportHistoryCSV() {
+  if (!history.length) return;
+  const header = 'time,filename,emotion,confidence';
+  const rows   = history.map(h =>
+    `${h.time},${h.filename},${h.emotion},${(h.confidence*100).toFixed(1)}%`);
+  download('history.csv', [header,...rows].join('\n'), 'text/csv');
+}
+function download(name, content, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type}));
+  a.download = name;
+  a.click();
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function setStatus(id, msg, cls) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className   = 'status-bar ' + (cls || '');
+}
+</script>
+</body>
+</html>

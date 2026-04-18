@@ -1,0 +1,29 @@
+{
+  "evaluation_date": "2026-04-18T16:54:56.693416",
+  "model_path": "models/ensemble_best.pth",
+  "datasets_evaluated": [
+    "CREMA-D"
+  ],
+  "individual_results": {
+    "CREMA-D": {
+      "accuracy": 0.16339693630744423,
+      "precision": 0.22110147858983806,
+      "recall": 0.16339693630744423,
+      "f1_score": 0.10573317852940031,
+      "auc_roc": null,
+      "num_samples": 7442,
+      "confusion_matrix_path": "results/crema-d_confusion_matrix.png"
+    }
+  },
+  "summary": {
+    "average_accuracy": 0.16339693630744423,
+    "num_datasets": 1,
+    "accuracy_std": 0.0
+  },
+  "generalization_analysis": {
+    "performance_consistency": "high",
+    "best_dataset": "CREMA-D",
+    "worst_dataset": "CREMA-D",
+    "accuracy_range": 0.0
+  }
+}
